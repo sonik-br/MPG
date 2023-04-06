@@ -10,11 +10,11 @@ static uint16_t getConfigurationDescriptor(const uint8_t *buffer, InputMode mode
 
 		case INPUT_MODE_SWITCH:
 			buffer = switch_configuration_descriptor;
-			return sizeof(switch_configuration_descriptor);
+			return switch_configuration_descriptor[2];
 
 		default:
 			buffer = hid_configuration_descriptor;
-			return sizeof(hid_configuration_descriptor);
+			return hid_configuration_descriptor[2];
 	}
 }
 

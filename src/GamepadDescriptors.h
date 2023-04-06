@@ -5,6 +5,8 @@
 
 #pragma once
 
+#define TOTAL_HID_INTERFACES 5
+
 #include <string.h>
 #include "GamepadEnums.h"
 #include "descriptors/HIDDescriptors.h"
@@ -23,11 +25,11 @@ static const uint8_t *getConfigurationDescriptor(uint16_t *size, InputMode mode)
 			return xinput_configuration_descriptor;
 
 		case INPUT_MODE_SWITCH:
-			*size = sizeof(switch_configuration_descriptor);
+			*size = switch_configuration_descriptor[2];
 			return switch_configuration_descriptor;
 
 		default:
-			*size = sizeof(hid_configuration_descriptor);
+			*size = hid_configuration_descriptor[2];
 			return hid_configuration_descriptor;
 	}
 }

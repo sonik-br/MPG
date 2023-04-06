@@ -40,7 +40,7 @@ void setup()
 	}
 
 	// Initialize USB device driver
-	setupHardware(gamepad.options.inputMode);
+	setupHardware(gamepad.options.inputMode, TOTAL_HID_INTERFACES);
 }
 
 void loop()
@@ -52,5 +52,8 @@ void loop()
 	gamepad.debounce();                                         // Run debouncing if enabled
 	hotkey = gamepad.hotkey();                                  // Check hotkey presses (D-pad mode, SOCD mode, etc.), hotkey enum returned
 	gamepad.process();                                          // Perform final input processing (SOCD cleaning, LS/RS emulation, etc.)
-	sendReport(gamepad.getReport(), reportSize);                // Convert and send it!
+  for(uint8_t i = 0; i < TOTAL_HID_INTERFACES; ++i)
+	{
+    sendReport(gamepad.getReport(), reportSize, i);                // Convert and send it!
+  }
 }

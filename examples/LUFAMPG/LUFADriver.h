@@ -23,8 +23,8 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex
 extern "C" {
 #endif
 
-void setupHardware(InputMode mode);
-void sendReport(void *data, uint8_t size);
+void setupHardware(InputMode mode, const uint8_t interfaces);
+void sendReport(void *data, uint8_t size, const uint8_t interface);
 
 // LUFA USB device event handlers
 

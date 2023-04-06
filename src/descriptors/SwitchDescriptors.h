@@ -104,7 +104,44 @@ static const uint8_t switch_hid_descriptor[] =
 	0x56, 0x00,  // wDescriptorLength[0] 86
 };
 
-static const uint8_t switch_configuration_descriptor[] =
+static const uint8_t SWITCH_CONFIG_MAIN_LENGTH = 9;
+static const uint8_t SWITCH_CONFIG_INTERFACE_LENGTH = 25;
+
+#define SWITCH_INTERFACE(n) \
+	0x09,         /* bLength */ \
+	0x04,         /* bDescriptorType (Interface) */ \
+	(n),          /* bInterfaceNumber 0 */ \
+	0x00,         /* bAlternateSetting */ \
+	/* 0x02,          bNumEndpoints 2 */ \
+	0x01,         /* bNumEndpoints 1 */ \
+	0x03,         /* bInterfaceClass */ \
+	0x00,         /* bInterfaceSubClass */ \
+	0x00,         /* bInterfaceProtocol */ \
+	0x00,         /* iInterface (String Index) */ \
+	\
+	0x09,         /* bLength */ \
+	0x21,         /* bDescriptorType (HID) */ \
+	0x11, 0x01,   /* bcdHID 1.11 */ \
+	0x00,         /* bCountryCode */ \
+	0x01,         /* bNumDescriptors */ \
+	0x22,         /* bDescriptorType[0] (HID) */ \
+	0x56, 0x00,   /* wDescriptorLength[0] 86 */ \
+	\
+	/* 0x07,        // bLength */ \
+	/* 0x05,        // bDescriptorType (Endpoint) */ \
+	/* 0x02,        // bEndpointAddress (OUT/H2D) */ \
+	/* 0x03,        // bmAttributes (Interrupt) */ \
+	/* 0x40, 0x00,  // wMaxPacketSize 64 */ \
+	/* 0x01,        // bInterval 1 (unit depends on device speed) */ \
+	\
+	0x07,         /* bLength */ \
+	0x05,         /* bDescriptorType (Endpoint) */ \
+	(n+1) | 0x80, /* bEndpointAddress (IN/D2H) */ \
+	0x03,         /* bmAttributes (Interrupt) */ \
+	0x40, 0x00,   /* wMaxPacketSize 64 */ \
+	0x01,         /* bInterval 1 (unit depends on device speed) */
+
+static uint8_t switch_configuration_descriptor[] =
 {
 	0x09,        // bLength
 	0x02,        // bDescriptorType (Configuration)
@@ -115,6 +152,13 @@ static const uint8_t switch_configuration_descriptor[] =
 	0x80,        // bmAttributes
 	0xFA,        // bMaxPower 500mA
 
+	SWITCH_INTERFACE(0)
+	SWITCH_INTERFACE(1)
+	SWITCH_INTERFACE(2)
+	SWITCH_INTERFACE(3)
+	SWITCH_INTERFACE(4)
+
+	/*
 	0x09,        // bLength
 	0x04,        // bDescriptorType (Interface)
 	0x00,        // bInterfaceNumber 0
@@ -146,6 +190,7 @@ static const uint8_t switch_configuration_descriptor[] =
 	0x03,        // bmAttributes (Interrupt)
 	0x40, 0x00,  // wMaxPacketSize 64
 	0x01,        // bInterval 1 (unit depends on device speed)
+	*/
 };
 
 static const uint8_t switch_report_descriptor[] =

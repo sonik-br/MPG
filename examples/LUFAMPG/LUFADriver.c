@@ -7,12 +7,32 @@ static XInputReport xinputReportData;
 static InputMode inputMode;
 static void *reportData;
 static uint8_t reportSize;
-static uint8_t lastReportBytes[64] = {0};
+static uint8_t lastReportBytes[TOTAL_HID_INTERFACES][64] = {0};
+
+static uint8_t bNumInterfaces;
 
 // Configures hardware and peripherals, such as the USB peripherals.
-void setupHardware(InputMode mode)
+void setupHardware(InputMode mode, const uint8_t interfaces)
 {
 	inputMode = mode;
+  bNumInterfaces = interfaces;
+
+  //override values on descriptors
+  switch (mode)
+  {
+    case INPUT_MODE_XINPUT:
+      break;
+
+    case INPUT_MODE_SWITCH:
+      switch_configuration_descriptor[2] = SWITCH_CONFIG_MAIN_LENGTH + (interfaces * SWITCH_CONFIG_INTERFACE_LENGTH);
+      switch_configuration_descriptor[4] = interfaces;
+      break;
+
+    default:
+      hid_configuration_descriptor[2] = HID_CONFIG_MAIN_LENGTH + (interfaces * HID_CONFIG_INTERFACE_LENGTH);
+      hid_configuration_descriptor[4] = interfaces;
+      break;
+  }
 
 	// We need to disable watchdog if enabled by bootloader/fuses.
 	MCUSR &= ~(1 << WDRF);
@@ -28,12 +48,12 @@ void setupHardware(InputMode mode)
 	GlobalInterruptEnable();
 }
 
-void sendReport(void *data, uint8_t size)
+void sendReport(void *data, uint8_t size, const uint8_t interface)
 {
 	reportData = data;
 	reportSize = size;
 	if (
-		memcmp(lastReportBytes, reportData, reportSize) != 0 && // Did the report change?
+		memcmp(lastReportBytes[interface], reportData, reportSize) != 0 && // Did the report change?
 		USB_DeviceState == DEVICE_STATE_Configured              // Is USB ready?
 	)
 	{
@@ -50,13 +70,13 @@ void sendReport(void *data, uint8_t size)
 			Endpoint_ClearOUT();
 		}
 
-		Endpoint_SelectEndpoint(EPADDR_IN);
+		Endpoint_SelectEndpoint(ENDPOINT_DIR_IN | (interface+1));
 
 		if (Endpoint_IsINReady())
 		{
 			Endpoint_Write_Stream_LE(reportData, reportSize, NULL);
 			Endpoint_ClearIN();
-			memcpy(lastReportBytes, reportData, reportSize);
+			memcpy(lastReportBytes[interface], reportData, reportSize);
 			memset(reportData, 0, reportSize);
 		}
 	}
@@ -134,7 +154,10 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 
 		default:
 			Endpoint_ConfigureEndpoint(EPADDR_OUT, EP_TYPE_INTERRUPT, HID_ENDPOINT_SIZE, 1);
-			Endpoint_ConfigureEndpoint(EPADDR_IN, EP_TYPE_INTERRUPT, HID_ENDPOINT_SIZE, 1);
+      for(uint8_t i = 1; i <= bNumInterfaces; ++i)
+			{
+        Endpoint_ConfigureEndpoint((ENDPOINT_DIR_IN  | i), EP_TYPE_INTERRUPT, HID_ENDPOINT_SIZE, 1);
+      }
 			break;
 	}
 }
